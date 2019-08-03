@@ -1,0 +1,21 @@
+DELIMITER $$
+
+USE `labtech`$$
+
+DROP PROCEDURE IF EXISTS `sp_AutoRemoveComputersMasterTrump`$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `sp_AutoRemoveComputersMasterTrump`()
+    MODIFIES SQL DATA
+BEGIN
+   DROP TEMPORARY TABLE IF EXISTS GComp_MT;
+	CREATE TEMPORARY TABLE GComp_MT
+	SELECT * FROM SubGroups
+	WHERE GroupID IN (SELECT GroupID FROM MasterGroups	WHERE MASTER=0) AND
+ 		ComputerID IN (SELECT ComputerID FROM SubGroups JOIN Mastergroups USING (groupid)
+	 		WHERE Mastergroups.AutoJoinScript>0 AND Mastergroups.Master=1);
+	
+	DELETE SubGroups FROM SubGroups JOIN GComp_MT USING (ComputerID,GroupID);
+	DROP TEMPORARY TABLE GComp_MT;
+END$$
+
+DELIMITER ;
